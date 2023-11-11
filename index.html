@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border:1px solid #d3d3d3;
+    background-color: #f1f1f1;
+}
+</style>
+</head>
+<body onload="startGame()">
+<script>
+
+var myGamePiece;
+var mySecondPiece;
+var isSwinging = true;
+var isGameOver = false; 
+var score = 0;
+
+function startGame() {
+    myGamePiece = new component(30, 30, "red", 80, 120);
+    mySecondPiece = null;
+    isSwinging = true;
+    isGameOver = false;
+    score = 0;
+    myGameArea.start();
+
+    window.addEventListener('keydown', function(e) {
+        if (!isGameOver && e.key === 'ArrowDown') {
+            myGamePiece.fallDown();
+            isSwinging = false;
+        }
+    });
+}
+
+function restartGame() {
+    startGame();
+    myGameArea.clear();
+}
+
+var myGameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        this.canvas.width = 480;
+        this.canvas.height = 270;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.interval = setInterval(updateGameArea, 20);        
+    },
+    stop : function() {
+        clearInterval(this.interval);
+    },    
+    clear : function() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+}
+
+function component(width, height, color, x, y, type) {
+    this.type = type;
+    this.width = width;
+    this.height = height;
+    this.x = x;
+    this.y = y;    
+    this.angle = 0;
+    this.swingSpeed = 0.05;
+    this.swingDirection = 1; // Added property to control swing direction
+    this.update = function() {
+        ctx = myGameArea.context;
+        ctx.fillStyle = color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+    this.newPos = function() {
+        if (isSwinging) {
+            this.angle += this.swingSpeed * this.swingDirection;
+            this.x = myGameArea.canvas.width / 2 + Math.sin(this.angle) * 100;
+        }
+    }
+    this.fallDown = function() {
+        this.y = myGameArea.canvas.height - this.height;
+        if (!mySecondPiece) {
+            mySecondPiece = new component(30, 30, "blue", this.x, this.y - 150);
+        }
+        mySecondPiece.y += 5; // Adjust the falling speed as needed
+        checkCollision();
+    }
+    this.swing = function() {
+        this.angle += this.swingSpeed * this.swingDirection;
+        this.x = myGameArea.canvas.width / 2 + Math.sin(this.angle) * 100;
+    }
+}
+
+function updateGameArea() {
+    myGameArea.clear();
+    if (!isGameOver) {
+        myGamePiece.newPos();
+        myGamePiece.update();
+        if (mySecondPiece) {
+            mySecondPiece.swing();
+            mySecondPiece.update();
+        }
+    }
+}
+
+function checkCollision() {
+    if (myGamePiece.x < mySecondPiece.x + mySecondPiece.width &&
+        myGamePiece.x + myGamePiece.width > mySecondPiece.x &&
+        myGamePiece.y < mySecondPiece.y + mySecondPiece.height &&
+        myGamePiece.y + myGamePiece.height > mySecondPiece.y) {
+        score++;
+        if (score === 1) {
+            isGameOver = true;
+            myGameArea.stop();
+            alert("Congratulations! You scored 1 point!");
+        }
+    }
+}
+
+</script>
+
+<p>The red square will swing back and forth in the middle of the canvas. Press the down arrow key to make it fall down and stop swinging.</p>
+<p>Try to position the second square above the first square perfectly to earn a high score!</p>
+<button onclick="restartGame()">Restart Game</button>
+
+</body>
+</html>
