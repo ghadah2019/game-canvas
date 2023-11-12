@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>صناعة البرغر</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+  <script>
+    var canvas = document.getElementById("gameCanvas");
+    var ctx = canvas.getContext("2d");
+
+    var burgerX = canvas.width / 2;
+    var burgerY = canvas.height - 100;
+    var burgerWidth = 120;
+    var burgerHeight = 120;
+    var burgerSpeed = 40;
+
+    var ingredientWidth = 100;
+    var ingredientHeight = 100;
+    var ingredientSpeed = 5;
+    var ingredientImages = [
+      "lettuce.png",
+      "tomato.png",
+      "cheese.png",
+      "pickle.png",
+      "mayo.png"
+    ];
+
+    var score = 0;
+
+    function drawBurger() {
+      var burgerImage = new Image();
+      burgerImage.src = "burger.png";
+      ctx.drawImage(burgerImage, burgerX, burgerY, burgerWidth, burgerHeight);
+    }
+
+    function drawIngredient() {
+      var ingredientImage = new Image();
+      ingredientImage.src = ingredientImages[score % ingredientImages.length];
+      ctx.drawImage(
+        ingredientImage,
+        ingredientX,
+        ingredientY,
+        ingredientWidth,
+        ingredientHeight
+      );
+    }
+
+    function drawScore() {
+      ctx.font = "16px Arial";
+      ctx.fillStyle = "#000000";
+      ctx.fillText("النقاط: " + score, 8, 20);
+    }
+
+    function detectCollision() {
+      if (
+        burgerX < ingredientX + ingredientWidth &&
+        burgerX + burgerWidth > ingredientX &&
+        burgerY < ingredientY + ingredientHeight &&
+        burgerY + burgerHeight > ingredientY
+      ) {
+        score++;
+        ingredientX = Math.random() * (canvas.width - ingredientWidth);
+        ingredientY = 0;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBurger();
+      drawIngredient();
+      drawScore();
+      detectCollision();
+
+      if (score < 10) {
+        ingredientY += ingredientSpeed;
+      } else if (score >= 10 && score < 20) {
+        ingredientY += ingredientSpeed + 1;
+      } else {
+        ingredientY += ingredientSpeed + 2;
+      }
+
+      if (ingredientY > canvas.height) {
+        score = 0;
+        ingredientX = Math.random() * (canvas.width - ingredientWidth);
+        ingredientY = 0;
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    var ingredientX = Math.random() * (canvas.width - ingredientWidth);
+    var ingredientY = 0;
+    // تعيين قيمة ingredientX هنا
+    ingredientX = Math.random() * (canvas.width - ingredientWidth);
+
+    document.addEventListener("keydown", function(event) {
+      if (event.key === "ArrowLeft" && burgerX > 0) {
+        burgerX -= burgerSpeed;
+      } else if (
+        event.key === "ArrowRight" &&
+        burgerX < canvas.width - burgerWidth
+      ) {
+        burgerX += burgerSpeed;
+      }
+    });
+
+    draw();
+  </script>
+</body>
+</html>
